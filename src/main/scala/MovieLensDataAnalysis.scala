@@ -1,58 +1,10 @@
-import DateOps.DateEnhancer
+import util.DateOps.DateEnhancer
+import util.ParsingUtil.{parseLink, parseMovie, parseRating, parseTag}
+import model._
 
-import java.util.Date
 import scala.io.Source
-import scala.util.Try
 
 object MovieLensDataAnalysis {
-
-  case class Movie(id: Int, title: String, year: Option[Int], genres: List[String])
-
-  case class Rating(userId: Int, movieId: Int, rating: Double, date: Date)
-
-  case class Tag(userId: Int, movieId: Int, tag: String, date: Date)
-
-  case class Link(movieId: Int, imdbId: Int, tmdbId: Option[Int])
-
-  def parseRating(line: String): Rating = line.split(',').toList match {
-    case userId :: movieId :: rating :: timestamp :: Nil =>
-      Rating(userId.toInt, movieId.toInt, rating.toDouble, new Date(timestamp.toLong * 1000))
-  }
-
-  def parseLink(line: String): Link = {
-    val splitted: Array[String] = line.split(',')
-
-    val movieId: Int = splitted(0).toInt
-    val imdbId: Int = splitted(1).toInt
-    val tmdbId = Try(splitted(2).toDouble.toInt).toOption
-    Link(movieId, imdbId, tmdbId)
-  }
-
-  def parseTag(line: String): Tag = {
-    val splitted: Array[String] = line.split(',')
-
-    val userId: Int = splitted(0).toInt
-    val movieId: Int = splitted(1).toInt
-    val tag: String = splitted(2)
-    val timestamp: Long = splitted(3).toLong
-    val date = new Date(timestamp * 1000)
-
-    Tag(userId, movieId, tag, date)
-  }
-
-  def parseMovie(line: String): Movie = {
-    val splitted: Array[String] = line.split(",", 2)
-
-    val id: Int = splitted(0).toInt
-    val remaining: String = splitted(1)
-    val sp: Int = remaining.lastIndexOf(",")
-    val titleDirty: String = remaining.substring(0, sp)
-    val title: String = if (titleDirty.startsWith("\"")) titleDirty.drop(1).init else titleDirty // ilk ve son karakterini sildik
-    val year: Option[Int] = Try(title.substring(title.lastIndexOf("("), title.lastIndexOf(")")).drop(1).toInt).toOption
-    val genres: List[String] = remaining.substring(sp + 1).split('|').toList
-
-    Movie(id, title, year, genres)
-  }
 
   def main(args: Array[String]): Unit = {
     val movieLines: Seq[String] = Source.fromFile("data/movies.csv").getLines.toList.drop(1)
@@ -74,29 +26,29 @@ object MovieLensDataAnalysis {
 
     // Case 2
     // Rating puanlarına göre en fazla yüksek puan verilen yıl hangisidir (sinemanın altın yılı 😊)
-//    printMaxRatedYear(ratings)
+    printMaxRatedYear(ratings)
 
     // Case 3
     // Yıllara göre film adedi en düşük olan türlerin genel ortalamadaki yeri nedir?
     // (yıllık film adedi en düşük olan 10 yılda toplam 13 filmle romantik komedi türüdür
     // ve toplamda xyz adet film arasında abc adet çekilmiştir)
-//    minAvgCountOfGenresByYear(movies,10)
+    minAvgCountOfGenresByYear(movies,10)
 
     // Case 4
     // Türlere göre Tag yapan kullanıcıların rating puanı verme ortalaması nedir ve bu oran hangi yılda peak yapmıştır?
     // (komedi filmleri için tag veren her 10 kişiden 8’i filme puan da vermektedir ve bu oran 2018 yılında %90’la peak yapmıştır)
-//    printPeakTagRatingPercentage(ratings, tags, movieMap)
+    printPeakTagRatingPercentage(ratings, tags, movieMap)
 
     // Case 5
     // En fazla tag veren kişinin en sevdiği ve en sevmediği türler hangi yıllardadır?
     // (519 adet tag’le en fazla tag yapan x id’li kullanıcının en yüksek puan verdiği yıl 1985 yılı aksiyon filmleridir,
     // en az puan verdiği yıl 2000 yılı romantik komedi filmleridir)
-//    printMostTaggedUserBestAndWorstRatingsByGenreAndYear(ratings, tags, movieMap)
+    printMostTaggedUserBestAndWorstRatingsByGenreAndYear(ratings, tags, movieMap)
 
     // Case 6
     // Türlerine göre filmlere önce tag yapılıp sonra mı puan verilmektedir yoksa önce puan verilip sonra mı tag yapılmaktadır?
     // (burada ilk event tag mi yoksa puan mı bakılsa yeterli zira tag-puan-tag şeklinde de gidebilir.)
-//    printFirstActionForFilmsByGenre(ratings, tags, movieMap)
+    printFirstActionForFilmsByGenre(ratings, tags, movieMap)
   }
 
   private def printPeakTagRatingPercentage(ratings: Seq[Rating], tags: Seq[Tag], movieMap: Map[Int, Movie]): Unit = {
