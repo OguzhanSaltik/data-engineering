@@ -1,21 +1,14 @@
 import util.DateOps.DateEnhancer
-import util.ParsingUtil.{parseLink, parseMovie, parseRating, parseTag}
+import util.ParsingUtil.{getLinesFromCsv, parseLink, parseMovie, parseRating, parseTag}
 import model._
-
-import scala.io.Source
 
 object MovieLensDataAnalysis {
 
   def main(args: Array[String]): Unit = {
-    val movieLines: Seq[String] = Source.fromFile("data/movies.csv").getLines.toList.drop(1)
-    val ratingLines: Seq[String] = Source.fromFile("data/ratings.csv").getLines.toList.drop(1)
-    val tagLines: Seq[String] = Source.fromFile("data/tags.csv").getLines.toList.drop(1)
-    val linkLines: Seq[String] = Source.fromFile("data/links.csv").getLines.toList.drop(1)
-
-    val movies: Seq[Movie] = movieLines.map(parseMovie)
-    val ratings: Seq[Rating] = ratingLines.map(parseRating)
-    val tags: Seq[Tag] = tagLines.map(parseTag)
-    val links: Seq[Link] = linkLines.map(parseLink)
+    val movies: Seq[Movie] = getLinesFromCsv("data/movies.csv").map(parseMovie)
+    val ratings: Seq[Rating] = getLinesFromCsv("data/ratings.csv").map(parseRating)
+    val tags: Seq[Tag] = getLinesFromCsv("data/tags.csv").map(parseTag)
+    val links: Seq[Link] = getLinesFromCsv("data/links.csv").map(parseLink)
 
     val movieMap: Map[Int, Movie] = movies.map(m => (m.id, m)).toMap
 

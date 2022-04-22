@@ -3,9 +3,14 @@ package util
 import model._
 
 import java.util.Date
+import scala.io.Source
 import scala.util.Try
 
 object ParsingUtil {
+  def getLinesFromCsv(path: String): List[String] = {
+    Source.fromFile(path).getLines.toList.drop(1)
+  }
+
   def parseRating(line: String): Rating = line.split(',').toList match {
     case userId :: movieId :: rating :: timestamp :: Nil =>
       Rating(userId.toInt, movieId.toInt, rating.toDouble, new Date(timestamp.toLong * 1000))
